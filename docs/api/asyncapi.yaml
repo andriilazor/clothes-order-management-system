@@ -1,0 +1,83 @@
+asyncapi: 3.0.0
+info:
+  title: Domain events
+  version: 0.1.0
+  description: |
+    Event contracts of the clothes order management system. Skeleton for R0: the
+    envelope every event carries (TRD, "Event catalogue"). Channels and payload
+    schemas are added together with the first service that publishes or consumes
+    an event.
+
+    Events are published at least once through each service's transactional outbox
+    and de-duplicated by consumers through `event_id`. One topic per producing
+    context, keyed by aggregate ID. Consumers must ignore unknown fields so that
+    producers can add fields without breaking them.
+defaultContentType: application/json
+
+components:
+  schemas:
+    EventEnvelope:
+      type: object
+      description: Common envelope of every event; `payload` is defined per event type.
+      required:
+        - event_id
+        - event_type
+        - event_version
+        - occurred_at
+        - aggregate_id
+        - correlation_id
+        - payload
+      properties:
+        event_id:
+          type: string
+          format: uuid
+          description: Unique per event; used by consumers for de-duplication (NFR-02).
+        event_type:
+          type: string
+          description: Name of the event, for example OrderConfirmed.
+          examples: [OrderConfirmed]
+        event_version:
+          type: integer
+          minimum: 1
+          description: Version of the payload schema.
+        occurred_at:
+          type: string
+          format: date-time
+          description: When the fact happened, in UTC.
+        aggregate_id:
+          type: string
+          format: uuid
+          description: Identifier of the aggregate; also the Kafka message key.
+        correlation_id:
+          type: string
+          pattern: '^[0-9a-f]{32}$'
+          description: The trace ID of the request that caused the event (NFR-08).
+        causation_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          description: The `event_id` of the event that caused this one, if any.
+        payload:
+          type: object
+          description: Event-specific data.
+      examples:
+        - event_id: 0192f4a0-7b1c-7d2e-9a3f-5c1e8b2d4f60
+          event_type: OrderConfirmed
+          event_version: 1
+          occurred_at: '2026-10-26T18:30:00Z'
+          aggregate_id: 0192f4a0-7b1c-7d2e-9a3f-5c1e8b2d4f61
+          correlation_id: 4bf92f3577b34da6a3ce929d0e0e4736
+          causation_id: null
+          payload: {}
+
+  messageTraits:
+    TracedMessage:
+      description: Trace context travels in Kafka headers, written by the outbox relay.
+      headers:
+        type: object
+        properties:
+          traceparent:
+            type: string
+            description: W3C trace context.
+            examples: ['00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01']

@@ -1,0 +1,238 @@
+openapi: 3.1.0
+info:
+  title: Customers API
+  version: 0.1.0
+  summary: Registration and login for the clothes order management system.
+  description: |
+    Public API of the Customers service, reached through the gateway.
+    Skeleton for R0: registration and login only (FR-CUS-01, FR-CUS-02, US-01).
+    Profile, addresses and the JWKS endpoint are added in R1.
+
+    Conventions (TRD, "API conventions"): errors are RFC 9457 problem details with a
+    stable `code`; times are ISO 8601 UTC; `X-Request-ID` is echoed on every response.
+servers:
+  - url: http://localhost:8080
+    description: Local gateway
+tags:
+  - name: Auth
+    description: Registration and login
+
+paths:
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      operationId: registerUser
+      summary: Register a customer account
+      description: |
+        Creates an account with the `customer` role (FR-CUS-01). An email can be
+        registered only once. The password is never returned or stored in readable form.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              valid:
+                summary: A new customer
+                value:
+                  email: anna.kowalska@example.com
+                  password: correct-horse-battery
+      responses:
+        '201':
+          description: Account created
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples:
+                created:
+                  value:
+                    id: 0192f4a0-7b1c-7d2e-9a3f-5c1e8b2d4f60
+                    email: anna.kowalska@example.com
+                    role: customer
+                    created_at: '2026-10-26T18:30:00Z'
+        '409':
+          description: An account with this email already exists
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                duplicate:
+                  value:
+                    type: https://api.example.com/problems/email-already-registered
+                    title: Email already registered
+                    status: 409
+                    detail: An account with this email already exists.
+                    instance: /api/v1/auth/register
+                    code: EMAIL_ALREADY_REGISTERED
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      operationId: loginUser
+      summary: Log in and obtain an access token
+      description: |
+        Returns an access token that expires (FR-CUS-02). A failed login does not say
+        whether the email or the password was wrong (US-01).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              valid:
+                summary: Registered customer
+                value:
+                  email: anna.kowalska@example.com
+                  password: correct-horse-battery
+      responses:
+        '200':
+          description: Login succeeded
+          headers:
+            X-Request-ID:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+              examples:
+                token:
+                  value:
+                    access_token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTkyZjRhMC03YjFjLTdkMmUtOWEzZi01YzFlOGIyZDRmNjAifQ.c2lnbmF0dXJl
+                    token_type: Bearer
+                    expires_in: 900
+        '401':
+          description: Credentials are not valid
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                invalid:
+                  value:
+                    type: https://api.example.com/problems/invalid-credentials
+                    title: Invalid credentials
+                    status: 401
+                    detail: The email or password is not valid.
+                    instance: /api/v1/auth/login
+                    code: INVALID_CREDENTIALS
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+components:
+  headers:
+    RequestId:
+      description: Correlation identifier of the request (the trace ID), echoed to the client.
+      schema:
+        type: string
+        examples: [4bf92f3577b34da6a3ce929d0e0e4736]
+
+  responses:
+    ValidationError:
+      description: The request body is not valid
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            short-password:
+              value:
+                type: https://api.example.com/problems/validation-error
+                title: Validation error
+                status: 422
+                detail: password must be at least 10 characters long.
+                instance: /api/v1/auth/register
+                code: VALIDATION_ERROR
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          minLength: 10
+          maxLength: 128
+          writeOnly: true
+          description: Plain password, at least 10 characters. Never returned.
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          maxLength: 128
+          writeOnly: true
+
+    User:
+      type: object
+      required: [id, email, role, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [customer, operations, finance]
+        created_at:
+          type: string
+          format: date-time
+
+    Token:
+      type: object
+      required: [access_token, token_type, expires_in]
+      properties:
+        access_token:
+          type: string
+          description: Signed JWT (RS256).
+        token_type:
+          type: string
+          const: Bearer
+        expires_in:
+          type: integer
+          minimum: 1
+          description: Lifetime of the token in seconds.
+
+    Problem:
+      type: object
+      description: RFC 9457 problem details with a stable machine-readable `code`.
+      required: [type, title, status, code]
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+        detail:
+          type: string
+        instance:
+          type: string
+        code:
+          type: string
+          description: Stable error code, for example EMAIL_ALREADY_REGISTERED.
