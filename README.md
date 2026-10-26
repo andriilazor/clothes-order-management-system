@@ -6,7 +6,7 @@ STATUS: PLANNED
 
 ## About
 
-The project consists of an e-commerce backend (REST API, no frontend) for a clothing retailer that ships online orders from several locations: central warehouses and physical stores. Besides the standard e-commerce domains (customers, products, orders, payments, invoices), the project focuses on the part most shops handle poorly: knowing where each item physically is, reserving it safely, and deciding where to ship it from. A demand-forecasting component predicts how fast each item will sell at each location, so that this decision takes expected future sales into account.
+The project consists of an e-commerce backend (REST API) with a minimal web frontend for a clothing retailer that ships online orders from several locations: central warehouses and physical stores. Besides the standard e-commerce domains (customers, products, orders, payments, invoices), the project focuses on the part most shops handle poorly: knowing where each item physically is, reserving it safely, and deciding where to ship it from. A demand-forecasting component predicts how fast each item will sell at each location, so that this decision takes expected future sales into account.
 
 ## Problem
 
@@ -51,11 +51,13 @@ Services communicate over HTTP (synchronous queries and commands) and Kafka (dom
 | Payments  | Payments          | Authorise / capture / refund via a mock payment provider                                          |
 | Billing   | Invoices/Receipts | Invoice per shipment, VAT, receipt, correction document                                           |
 
+A minimal server-rendered web app (FastAPI, Jinja2, HTMX) calls the public API through an nginx gateway like any other client and holds no business rules.
+
 Each service uses hexagonal architecture (ports and adapters). Calls to the payment provider and between services are protected by Circuit Breaker and Retry, and requests are traced end to end. Demand forecasting is not a seventh service: it is a module of Inventory plus an offline training job.
 
 ## Planned stack
 
-Python, FastAPI, PostgreSQL, Kafka, pytest, Testcontainers, Docker Compose. Forecasting: pandas, scikit-learn, LightGBM. All tools are free to use and run locally.
+Python, FastAPI, Jinja2, HTMX, PostgreSQL, Kafka, nginx, pytest, Testcontainers, Docker Compose. Forecasting: pandas, scikit-learn, LightGBM. All tools are free to use and run locally.
 
 ## Forecasting evaluation plan
 
