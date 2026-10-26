@@ -1,0 +1,10 @@
+[project]
+name = "customers"
+version = "0.0.0"
+description = "Customers service: registration, login, tokens, profiles, addresses"
+requires-python = ">=3.13"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.13.4,<0.14"]
+build-backend = "uv_build"

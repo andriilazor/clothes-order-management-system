@@ -1,0 +1,80 @@
+[project]
+name = "clothes-order-management-system"
+version = "0.0.0"
+description = "Order management system for a fashion retailer (course project)"
+requires-python = ">=3.13"
+dependencies = ["coms-platform", "customers"]
+
+[dependency-groups]
+dev = [
+    "import-linter",
+    "mypy",
+    "openapi-spec-validator",
+    "pytest",
+    "ruff",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["libs/*", "services/*"]
+
+[tool.uv.sources]
+coms-platform = { workspace = true }
+customers = { workspace = true }
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+# T20 forbids print; E722 (bare except) is part of E
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "T20", "RUF"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+
+[tool.pytest.ini_options]
+testpaths = ["services", "libs", "tests"]
+addopts = ["--import-mode=importlib", "--strict-markers"]
+markers = [
+    "req(*ids): requirement IDs (FR-, NFR-, BR-, US-) the test verifies",
+    "integration: needs Docker (real PostgreSQL and Kafka)",
+]
+
+[tool.importlinter]
+root_packages = ["customers", "coms_platform"]
+# needed so that the contract below can name external frameworks as forbidden
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "customers: layers point inwards"
+type = "layers"
+layers = [
+    "customers.bootstrap",
+    "customers.adapters",
+    "customers.application",
+    "customers.domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "customers: inbound and outbound adapters are independent"
+type = "independence"
+modules = [
+    "customers.adapters.inbound",
+    "customers.adapters.outbound",
+]
+
+[[tool.importlinter.contracts]]
+name = "customers: domain uses only the standard library"
+type = "forbidden"
+source_modules = ["customers.domain"]
+forbidden_modules = ["fastapi", "sqlalchemy", "pydantic", "httpx", "aiokafka"]
+
+[[tool.importlinter.contracts]]
+name = "platform library does not depend on services"
+type = "forbidden"
+source_modules = ["coms_platform"]
+forbidden_modules = ["customers"]
