@@ -1,47 +1,26 @@
 import pytest
+from customers.application.ports import PasswordHasher, UserRepository
 from customers.application.register_user import RegisterUser
-from customers.domain.user import EmailAlreadyRegistered, Role, User
-
-
-class InMemoryUsers:
-    def __init__(self) -> None:
-        self.by_email: dict[str, User] = {}
-
-    async def find_by_email(self, email: str) -> User | None:
-        return self.by_email.get(email)
-
-    async def add(self, user: User) -> None:
-        self.by_email[user.email] = user
-
-
-class FakeHasher:
-    def hash(self, password: str) -> str:
-        return f"hashed:{password}"
-
-
-@pytest.fixture
-def users() -> InMemoryUsers:
-    return InMemoryUsers()
-
-
-@pytest.fixture
-def register(users: InMemoryUsers) -> RegisterUser:
-    return RegisterUser(users, FakeHasher())
+from customers.domain.user import EmailAlreadyRegistered, Role
 
 
 @pytest.mark.req("FR-CUS-01", "US-01")
 async def test_registers_a_customer_with_a_hashed_password(
-    register: RegisterUser, users: InMemoryUsers
+    users: UserRepository, hasher: PasswordHasher
 ) -> None:
-    user = await register.execute("anna@example.com", "secret")
+    user = await RegisterUser(users, hasher).execute("anna@example.com", "secret")
 
     assert user.role is Role.CUSTOMER
-    assert user.password_hash == "hashed:secret"
-    assert users.by_email["anna@example.com"] == user
+    assert user.password_hash != "secret"
+    assert hasher.verify("secret", user.password_hash)
+    assert await users.find_by_email("anna@example.com") == user
 
 
 @pytest.mark.req("FR-CUS-01", "US-01")
-async def test_refuses_an_email_that_is_already_registered(register: RegisterUser) -> None:
+async def test_refuses_an_email_that_is_already_registered(
+    users: UserRepository, hasher: PasswordHasher
+) -> None:
+    register = RegisterUser(users, hasher)
     await register.execute("anna@example.com", "secret")
 
     with pytest.raises(EmailAlreadyRegistered):
