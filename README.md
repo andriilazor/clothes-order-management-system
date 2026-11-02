@@ -59,6 +59,18 @@ Each service uses hexagonal architecture (ports and adapters). Calls to the paym
 
 Python, FastAPI, Jinja2, HTMX, PostgreSQL, Kafka, nginx, pytest, Testcontainers, Docker Compose. Forecasting: pandas, scikit-learn, LightGBM. All tools are free to use and run locally.
 
+## Local development
+
+Requires [uv](https://docs.astral.sh/uv/) and Docker. On an Apple Silicon Mac use a native arm64 Python (`uv python install 3.13`); an x86_64 Python has no prebuilt `cryptography` wheel and the install fails.
+
+```bash
+uv sync                                          # install all workspace packages
+docker compose -f deploy/docker-compose.yml up   # PostgreSQL with one database per service
+uv run pytest -m "not integration"               # fast unit tests
+```
+
+Defaults are for local development only; override them in `deploy/.env` (see `deploy/.env.example`).
+
 ## Forecasting evaluation plan
 
 **Hypothesis (to be tested, not assumed):** allocation that accounts for expected demand loses fewer sales and costs less than rule-based allocation.

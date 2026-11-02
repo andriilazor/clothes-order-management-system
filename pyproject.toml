@@ -7,11 +7,15 @@ dependencies = ["coms-platform", "customers"]
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
+    "hypothesis>=6.170.14",
     "import-linter",
     "mypy",
     "openapi-spec-validator",
     "pytest",
+    "pytest-asyncio>=1.4.1.post1",
     "ruff",
+    "testcontainers[postgres]>=4.15.0",
 ]
 
 [tool.uv]
