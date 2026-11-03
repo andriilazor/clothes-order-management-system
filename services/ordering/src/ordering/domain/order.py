@@ -1,0 +1,40 @@
+from enum import StrEnum
+from typing import Self
+from uuid import UUID, uuid4
+
+from ordering.domain.cart import Cart, CartItem
+
+
+class OrderStatus(StrEnum):
+    PLACED = "placed"
+    CONFIRMED = "confirmed"
+    COMPLETED = "completed"
+
+
+class Order:
+    def __init__(self, id: UUID, items: tuple[CartItem, ...]) -> None:
+        self._id = id
+        self._items = items
+        self._status = OrderStatus.PLACED
+
+    @classmethod
+    def place(cls, cart: Cart) -> Self:
+        return cls(uuid4(), cart.items)
+
+    @property
+    def id(self) -> UUID:
+        return self._id
+
+    @property
+    def items(self) -> tuple[CartItem, ...]:
+        return self._items
+
+    @property
+    def status(self) -> OrderStatus:
+        return self._status
+
+    def confirm(self) -> None:
+        self._status = OrderStatus.CONFIRMED
+
+    def complete(self) -> None:
+        self._status = OrderStatus.COMPLETED
