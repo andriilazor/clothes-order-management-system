@@ -1,9 +1,8 @@
 from enum import StrEnum
 from typing import Self
 from uuid import UUID, uuid4
-
 from ordering.domain.cart import Cart, CartItem
-
+from ordering.domain.errors import EmptyCart
 
 class OrderStatus(StrEnum):
     PLACED = "placed"
@@ -19,6 +18,8 @@ class Order:
 
     @classmethod
     def place(cls, cart: Cart) -> Self:
+        if not cart.items:
+            raise EmptyCart
         return cls(uuid4(), cart.items)
 
     @property
