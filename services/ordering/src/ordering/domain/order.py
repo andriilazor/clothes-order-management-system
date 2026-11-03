@@ -2,7 +2,7 @@ from enum import StrEnum
 from typing import Self
 from uuid import UUID, uuid4
 from ordering.domain.cart import Cart, CartItem
-from ordering.domain.errors import EmptyCart
+from ordering.domain.errors import EmptyCart, InvalidOrderTransition
 
 class OrderStatus(StrEnum):
     PLACED = "placed"
@@ -35,7 +35,12 @@ class Order:
         return self._status
 
     def confirm(self) -> None:
-        self._status = OrderStatus.CONFIRMED
-
+        self._transition(OrderStatus.PLACED, OrderStatus.CONFIRMED)
+        
     def complete(self) -> None:
-        self._status = OrderStatus.COMPLETED
+        self._transition(OrderStatus.CONFIRMED, OrderStatus.COMPLETED)
+        
+    def _transition(self, expected: OrderStatus, new: OrderStatus) -> None:
+        if self._status != expected:
+            raise InvalidOrderTransition(f"{self._status} -> {new}")
+        self._status = new
