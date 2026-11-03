@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from uuid import UUID
+from ordering.domain.errors import InvalidQuantity
 
 @dataclass(frozen=True)
 class CartItem:
@@ -20,6 +21,8 @@ class Cart:
         return tuple(CartItem(sku, quantity) for sku, quantity in self._quantities.items())
 
     def add_item(self, sku: str, quantity: int) -> None:
+        if quantity <= 0:
+            raise InvalidQuantity(quantity)
         self._quantities[sku] = self._quantities.get(sku, 0) + quantity
         
     def remove_item(self, sku: str) -> None:
