@@ -1,11 +1,14 @@
 from dataclasses import dataclass
 from uuid import UUID
+
 from ordering.domain.errors import InvalidQuantity, ItemNotInCart
+
 
 @dataclass(frozen=True)
 class CartItem:
     sku: str
     quantity: int
+
 
 class Cart:
     def __init__(self, id: UUID) -> None:
@@ -24,7 +27,7 @@ class Cart:
         if quantity <= 0:
             raise InvalidQuantity(quantity)
         self._quantities[sku] = self._quantities.get(sku, 0) + quantity
-        
+
     def remove_item(self, sku: str) -> None:
         if sku not in self._quantities:
             raise ItemNotInCart(sku)
