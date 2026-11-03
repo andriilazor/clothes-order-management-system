@@ -42,18 +42,18 @@ Services communicate over HTTP (synchronous queries and commands) and Kafka (dom
 
 ## Planned architecture
 
-| Service   | Domain            | Responsibility                                                                                    |
-| --------- | ----------------- | ------------------------------------------------------------------------------------------------- |
-| Customers | Customers         | Registration, login (JWT), profile, addresses                                                     |
-| Catalog   | Products          | Products, variants (size/colour), prices, categories, search                                      |
-| Orders    | Orders            | Cart, checkout, order life cycle, shipments (mock carrier), saga orchestration                    |
-| Inventory | Products (stock)  | Stock per location, reservations with TTL, allocation strategies (incl. forecast-aware), stored demand forecasts |
-| Payments  | Payments          | Authorise / capture / refund via a mock payment provider                                          |
-| Billing   | Invoices/Receipts | Invoice per shipment, VAT, receipt, correction document                                           |
+| Service   | Aggregates       | Responsibility                                                                                    |
+| --------- | ---------------- | ------------------------------------------------------------------------------------------------- |
+| Ordering  | Cart, Order, Shipment | Product catalogue, cart, placing and confirming orders, shipments (mock carrier), order completion |
+| Inventory | StockReservation | Stock per location, reservations, allocation strategies (incl. forecast-aware), stored demand forecasts |
+| Payments  | Payment          | Authorise / capture via a mock payment provider                                                   |
+| Billing   | Invoice          | Invoice per shipment, correction document                                                         |
+
+The contexts and their names come from the Event Storming board in `docs/event-storming-grid.png`.
 
 A minimal server-rendered web app (FastAPI, Jinja2, HTMX) calls the public API through an nginx gateway like any other client and holds no business rules.
 
-Each service uses hexagonal architecture (ports and adapters). Calls to the payment provider and between services are protected by Circuit Breaker and Retry, and requests are traced end to end. Demand forecasting is not a seventh service: it is a module of Inventory plus an offline training job.
+Each service uses hexagonal architecture (ports and adapters). Calls to the payment provider and between services are protected by Circuit Breaker and Retry, and requests are traced end to end. Demand forecasting is not a separate service: it is a module of Inventory plus an offline training job.
 
 ## Planned stack
 
