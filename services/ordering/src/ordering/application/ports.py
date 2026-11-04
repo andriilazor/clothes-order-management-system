@@ -7,6 +7,8 @@ from ordering.domain.order import Order
 
 class CartRepository(Protocol):
     async def get(self, cart_id: UUID) -> Cart | None: ...
+    
+    async def save(self, cart: Cart) -> None: ...
 
 
 class OrderRepository(Protocol):
