@@ -1,8 +1,8 @@
 from uuid import UUID
 
 from ordering.application.ports import CartRepository, OrderRepository
-from ordering.domain.order import Order
 from ordering.domain.errors import CartNotFound
+from ordering.domain.order import Order
 
 
 class PlaceOrder:
