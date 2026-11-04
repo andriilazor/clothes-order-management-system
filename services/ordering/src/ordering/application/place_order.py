@@ -11,6 +11,9 @@ class PlaceOrder:
         self._orders = orders
 
     async def execute(self, cart_id: UUID) -> Order:
+        existing = await self._orders.get_by_cart_id(cart_id)
+        if existing:
+            return existing
         cart = await self._carts.get(cart_id)
         if cart is None:
             raise CartNotFound(cart_id)
