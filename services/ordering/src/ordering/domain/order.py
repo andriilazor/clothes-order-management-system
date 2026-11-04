@@ -28,10 +28,10 @@ class Order:
     @property
     def id(self) -> UUID:
         return self._id
-      
+
     @property
     def cart_id(self) -> UUID:
-      return self._cart_id
+        return self._cart_id
 
     @property
     def items(self) -> tuple[CartItem, ...]:

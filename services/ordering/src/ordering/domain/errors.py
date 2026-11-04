@@ -16,3 +16,7 @@ class EmptyCart(DomainError):
 
 class InvalidOrderTransition(DomainError):
     pass
+
+
+class CartNotFound(DomainError):
+    pass
