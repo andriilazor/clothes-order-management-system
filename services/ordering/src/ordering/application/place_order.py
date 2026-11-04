@@ -2,6 +2,7 @@ from uuid import UUID
 
 from ordering.application.ports import CartRepository, OrderRepository
 from ordering.domain.order import Order
+from ordering.domain.errors import CartNotFound
 
 
 class PlaceOrder:
@@ -10,4 +11,7 @@ class PlaceOrder:
         self._orders = orders
 
     async def execute(self, cart_id: UUID) -> Order:
-        raise NotImplementedError
+        cart = await self._carts.get(cart_id)
+        if cart is None:
+            raise CartNotFound(cart_id)
+        return Order.place(cart)
