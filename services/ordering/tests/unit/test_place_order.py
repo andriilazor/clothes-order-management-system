@@ -13,7 +13,7 @@ class FakeCartRepository:
 
     async def get(self, cart_id: UUID) -> Cart | None:
         return self._carts.get(cart_id)
-    
+
     async def save(self, cart: Cart) -> None:
         self._carts[cart.id] = cart
 
