@@ -14,4 +14,6 @@ class PlaceOrder:
         cart = await self._carts.get(cart_id)
         if cart is None:
             raise CartNotFound(cart_id)
-        return Order.place(cart)
+        order = Order.place(cart)
+        await self._orders.add(order)
+        return order
