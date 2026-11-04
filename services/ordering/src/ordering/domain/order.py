@@ -13,8 +13,9 @@ class OrderStatus(StrEnum):
 
 
 class Order:
-    def __init__(self, id: UUID, items: tuple[CartItem, ...]) -> None:
+    def __init__(self, id: UUID, cart_id: UUID, items: tuple[CartItem, ...]) -> None:
         self._id = id
+        self._cart_id = cart_id
         self._items = items
         self._status = OrderStatus.PLACED
 
@@ -22,11 +23,15 @@ class Order:
     def place(cls, cart: Cart) -> Self:
         if not cart.items:
             raise EmptyCart
-        return cls(uuid4(), cart.items)
+        return cls(uuid4(), cart.id, cart.items)
 
     @property
     def id(self) -> UUID:
         return self._id
+      
+    @property
+    def cart_id(self) -> UUID:
+      return self._cart_id
 
     @property
     def items(self) -> tuple[CartItem, ...]:
