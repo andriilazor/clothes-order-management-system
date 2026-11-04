@@ -25,6 +25,7 @@ def test_place_creates_placed_order_with_cart_items() -> None:
     # Assert
     assert order.status == OrderStatus.PLACED
     assert order.items == cart.items
+    assert order.cart_id == cart.id
 
 
 # An empty cart cannot become an order.
