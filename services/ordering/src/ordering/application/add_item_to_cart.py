@@ -8,4 +8,9 @@ class AddItemToCart:
     self._carts = carts
     
   async def execute(self, cart_id: UUID, sku: str, quantity: int) -> Cart:
-    raise NotImplementedError
+    cart = await self._carts.get(cart_id)
+    if cart is None:
+      cart = Cart(cart_id)
+    cart.add_item(sku, quantity)
+    await self._carts.save(cart)
+    return cart
