@@ -4,12 +4,13 @@ import pytest
 from ordering.domain.cart import Cart
 from ordering.domain.errors import EmptyCart, InvalidOrderTransition
 from ordering.domain.order import Order, OrderStatus
+from ordering.domain.value_objects import Quantity, Sku
 
 
 @pytest.fixture
 def order() -> Order:
     cart = Cart(uuid4())
-    cart.add_item("SKU-1", 2)
+    cart.add_item(Sku("SKU-1"), Quantity(2))
     return Order.place(cart)
 
 
@@ -17,7 +18,7 @@ def order() -> Order:
 def test_place_creates_placed_order_with_cart_items() -> None:
     # Arrange
     cart = Cart(uuid4())
-    cart.add_item("SKU-1", 2)
+    cart.add_item(Sku("SKU-1"), Quantity(2))
 
     # Act
     order = Order.place(cart)
@@ -66,6 +67,15 @@ def test_invalid_transition_is_rejected(order: Order, steps: list[str], action: 
     # Act & Assert
     with pytest.raises(InvalidOrderTransition):
         getattr(order, action)()
+
+
+# An order read back from storage keeps the status it was saved with.
+def test_order_restored_with_status_keeps_it(order: Order) -> None:
+    # Act
+    restored = Order(order.id, order.cart_id, order.items, OrderStatus.CONFIRMED)
+
+    # Assert
+    assert restored.status == OrderStatus.CONFIRMED
 
 
 # Status changes only through behaviour, there is no setter.

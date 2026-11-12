@@ -87,6 +87,12 @@ source_modules = ["ordering.domain"]
 forbidden_modules = ["fastapi", "sqlalchemy", "pydantic", "httpx", "aiokafka"]
 
 [[tool.importlinter.contracts]]
+name = "ordering: only outbound adapters and bootstrap touch the database"
+type = "forbidden"
+source_modules = ["ordering.application", "ordering.adapters.inbound"]
+forbidden_modules = ["sqlalchemy", "alembic", "asyncpg", "aiosqlite"]
+
+[[tool.importlinter.contracts]]
 name = "inventory: layers point inwards"
 type = "layers"
 layers = [

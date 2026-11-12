@@ -71,6 +71,25 @@ uv run pytest -m "not integration"               # fast unit tests
 
 Defaults are for local development only; override them in `deploy/.env` (see `deploy/.env.example`).
 
+### Ordering service
+
+Ordering stores carts and orders with SQLAlchemy; the schema is managed by Alembic. Settings are in `.env.example`.
+
+```bash
+# With PostgreSQL (Docker): migrations run and demo carts are seeded at start
+docker compose -f deploy/docker-compose.yml up -d
+ORDERING_DATABASE_URL=postgresql+asyncpg://coms:coms_dev_password@localhost:5432/ordering_db \
+  uv run uvicorn ordering.bootstrap.app:create_app --factory --port 8001
+
+# Without Docker: in-memory SQLite, data lives until the process stops
+uv run uvicorn ordering.bootstrap.app:create_app --factory --port 8001
+
+uv run pytest -m integration    # repository and seeder tests against PostgreSQL (needs Docker)
+uv run alembic -c services/ordering/alembic.ini revision --autogenerate -m "<message>"
+```
+
+Requests for a manual check are in `services/ordering/requests.http`.
+
 ## Forecasting evaluation plan
 
 **Hypothesis (to be tested, not assumed):** allocation that accounts for expected demand loses fewer sales and costs less than rule-based allocation.

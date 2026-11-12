@@ -13,11 +13,17 @@ class OrderStatus(StrEnum):
 
 
 class Order:
-    def __init__(self, id: UUID, cart_id: UUID, items: tuple[CartItem, ...]) -> None:
+    def __init__(
+        self,
+        id: UUID,
+        cart_id: UUID,
+        items: tuple[CartItem, ...],
+        status: OrderStatus = OrderStatus.PLACED,
+    ) -> None:
         self._id = id
         self._cart_id = cart_id
         self._items = items
-        self._status = OrderStatus.PLACED
+        self._status = status
 
     @classmethod
     def place(cls, cart: Cart) -> Self:

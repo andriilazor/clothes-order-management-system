@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Protocol
 from uuid import UUID
 
@@ -15,3 +16,11 @@ class OrderRepository(Protocol):
     async def get_by_cart_id(self, cart_id: UUID) -> Order | None: ...
 
     async def add(self, order: Order) -> None: ...
+
+    async def list_all(self) -> tuple[Order, ...]: ...
+
+
+@dataclass(frozen=True)
+class Repositories:
+    carts: CartRepository
+    orders: OrderRepository

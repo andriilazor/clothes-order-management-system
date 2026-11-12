@@ -5,6 +5,7 @@ from ordering.application.place_order import PlaceOrder
 from ordering.domain.cart import Cart
 from ordering.domain.errors import CartNotFound, EmptyCart
 from ordering.domain.order import Order, OrderStatus
+from ordering.domain.value_objects import Quantity, Sku
 
 
 class FakeCartRepository:
@@ -28,11 +29,14 @@ class FakeOrderRepository:
     async def add(self, order: Order) -> None:
         self.saved[order.cart_id] = order
 
+    async def list_all(self) -> tuple[Order, ...]:
+        return tuple(self.saved.values())
+
 
 @pytest.fixture
 def cart() -> Cart:
     cart = Cart(uuid4())
-    cart.add_item("SKU-1", 2)
+    cart.add_item(Sku("SKU-1"), Quantity(2))
     return cart
 
 

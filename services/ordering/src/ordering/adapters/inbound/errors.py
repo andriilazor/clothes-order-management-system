@@ -6,13 +6,17 @@ from ordering.domain.errors import (
     EmptyCart,
     InvalidOrderTransition,
     InvalidQuantity,
+    InvalidSku,
     ItemNotInCart,
+    QuantityLimitExceeded,
 )
 
 STATUS_BY_ERROR: dict[type[Exception], int] = {
     CartNotFound: 404,
     ItemNotInCart: 404,
     InvalidQuantity: 422,
+    InvalidSku: 422,
+    QuantityLimitExceeded: 422,
     EmptyCart: 422,
     InvalidOrderTransition: 409,
 }

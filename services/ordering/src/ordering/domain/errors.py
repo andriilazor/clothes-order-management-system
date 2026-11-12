@@ -20,3 +20,11 @@ class InvalidOrderTransition(DomainError):
 
 class CartNotFound(DomainError):
     pass
+
+
+class InvalidSku(DomainError):
+    pass
+
+
+class QuantityLimitExceeded(DomainError):
+    pass

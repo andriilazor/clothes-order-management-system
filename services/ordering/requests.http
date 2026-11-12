@@ -1,0 +1,38 @@
+# Ordering API checks (VS Code REST Client or JetBrains HTTP Client).
+# Start the service first, see README "Ordering service".
+@base = http://localhost:8001/api/v1
+@demoCart = 11111111-1111-1111-1111-111111111111
+@emptyCart = 22222222-2222-2222-2222-222222222222
+
+### Seeded demo cart: 200
+GET {{base}}/carts/{{demoCart}}
+
+### Add item to cart (command): 200
+POST {{base}}/carts/{{demoCart}}/items
+Content-Type: application/json
+
+{"sku": "jeans-blue-32", "quantity": 1}
+
+### More than 5 units of one SKU: 422 QuantityLimitExceeded
+POST {{base}}/carts/{{demoCart}}/items
+Content-Type: application/json
+
+{"sku": "DRESS-RED-M", "quantity": 2}
+
+### Item removed from cart: 200
+DELETE {{base}}/carts/{{demoCart}}/items/JEANS-BLUE-32
+
+### Place order (create): 201
+POST {{base}}/orders
+Content-Type: application/json
+
+{"cart_id": "{{demoCart}}"}
+
+### Place order for the empty seeded cart: 422 EmptyCart
+POST {{base}}/orders
+Content-Type: application/json
+
+{"cart_id": "{{emptyCart}}"}
+
+### List orders: 200
+GET {{base}}/orders
